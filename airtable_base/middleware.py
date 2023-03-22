@@ -3,7 +3,7 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 
-from .airtable_fetch import AirtableActions
+from .fetch import AirtableActions
 
 
 class AirtableMiddleware(BaseMiddleware):
