@@ -1,9 +1,9 @@
 from os import environ
 
-from aiogram import Bot, Dispatcher, types, Router
+from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message, BufferedInputFile
-
+from aiogram.types import Message
 
 from airtable_base.fetch import AirtableActions
 from airtable_base.middleware import AirtableMiddleware
@@ -15,9 +15,11 @@ BASE = environ["WORDS_BASE"]
 
 
 async def go_anneal(m: Message, air_connect: AirtableActions):
-    additional_data = air_connect.get_df(["Иероглиф", "Пиньинь"])
+    additional_data = air_connect.get_df(["Иероглиф", "Пиньинь", "Значение", "Хаохан", "ТрейнЧайниз"])
     additional_data.to_dict(orient='records')
-    print(additional_data)
+    print(additional_data.to_dict(orient='records')[0:2])
+
+    await m.answer("Zdarova ||chel||", parse_mode=ParseMode.MARKDOWN_V2)
 
 
 def main():
