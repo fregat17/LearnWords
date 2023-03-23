@@ -7,6 +7,8 @@ from aiogram.types import Message
 
 from airtable_base.fetch import AirtableActions
 from airtable_base.middleware import AirtableMiddleware
+from logic.card import make_cards
+from message_template import ReadyMsg
 
 # tokens
 BOT_TOKEN = environ['BOT_TOKEN']
@@ -15,11 +17,13 @@ BASE = environ["WORDS_BASE"]
 
 
 async def go_anneal(m: Message, air_connect: AirtableActions):
-    additional_data = air_connect.get_df(["Иероглиф", "Пиньинь", "Значение", "Хаохан", "ТрейнЧайниз"])
-    additional_data.to_dict(orient='records')
-    print(additional_data.to_dict(orient='records')[0:2])
+    word_records = air_connect.get_fields(["Иероглиф", "Пиньинь", "Значение", "Хаохан", "ТрейнЧайниз"])
+    print(word_records[0:2])
+    cards = make_cards(word_records[0:2])
+    print(cards)
+    test = ReadyMsg(cards[1], target="hieroglyph").render()
 
-    await m.answer("Zdarova ||chel||", parse_mode=ParseMode.MARKDOWN_V2)
+    await m.answer(test, parse_mode=ParseMode.MARKDOWN_V2, disable_web_page_preview=True)
 
 
 def main():
