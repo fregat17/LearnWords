@@ -1,7 +1,6 @@
 from typing import Generator, Any, Iterator, Mapping, List
 
 from pyairtable import Table
-from pandas import DataFrame
 
 
 class AirtableActions:
@@ -24,8 +23,3 @@ class AirtableActions:
     def get_fields(self, fields: List[str]):
         fields_list = [entry['fields'] for entry in self._data_generator(fields) if 'fields' in entry]
         return fields_list
-
-    def get_df(self, fields: List[str]) -> DataFrame:
-        records = [r["fields"] for r in self._auth.all(fields=fields)]
-        data = DataFrame.from_records(records)
-        return data
