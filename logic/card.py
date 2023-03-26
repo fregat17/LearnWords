@@ -1,3 +1,8 @@
+from cachetools import TTLCache, cached
+
+cache = TTLCache(maxsize=1, ttl=360)
+
+
 class WordCard:
     def __init__(self, hieroglyph, pinyin, meaning, haohan, train):
         self.hieroglyph = hieroglyph
@@ -15,8 +20,8 @@ def make_cards(word_records):
             cards.append(WordCard(record["Иероглиф"],
                                   record["Пиньинь"],
                                   record["Значение"],
-                                  record["Хаохан"],
-                                  record["ТрейнЧайниз"]))
+                                  record["Хаохан", False],
+                                  record["ТрейнЧайниз", False]))
         else:
             continue
 
