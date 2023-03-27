@@ -32,25 +32,35 @@ async def start(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(DialogSG.entry, mode=StartMode.RESET_STACK)
 
 
-async def get_data(**kwargs):
+async def get_flags(**kwargs):
     flags = [
         ("hieroglyph", "hieroglyph"),
         ("pinyin", "pinyin"),
         ("meaning", "meaning"),
     ]
-    #data = air_connect.get_fields(["Hieroglyph", "Pinyin", "Meaning", "Haohan", "TrainCh"])
-    #cards = make_cards(data)
 
     return {
         "flags": flags,
-        #"card": cards[23]
     }
 
 
+async def get_data(dialog_manager: DialogManager, air_connect, **kwargs):
+    flags = dialog_manager.dialog_data.get("chosen_flags")
+    data = air_connect.get_fields(["Hieroglyph", "Pinyin", "Meaning", "Haohan", "TrainCh"])
+    cards = make_cards(data)
+    ready_template = render_spoilers(flags)
+
+    return {
+        "ready_template": ready_template,
+        "card": cards[23]
+    }
+
 async def go_anneal(c, dialog, manager: DialogManager):  # , air_connect: AirtableActions
-    print(regimes_kbd.get_checked(manager))
-    print(manager.dialog_data)
+    checked_flags = manager.find("regimes_kbd")
+    manager.dialog_data["chosen_flags"] = checked_flags.get_checked()
+
     await c.answer("asd")
+    await manager.next()
     #word_records = air_connect.get_fields(["Hieroglyph", "Pinyin", "Meaning", "Haohan", "TrainCh"])
     #print(word_records[0:2])
 
@@ -76,14 +86,28 @@ regimes_kbd = Multiselect(
 
 get_regime = Button(Const("Process"), id="get_regime", on_click=go_anneal)
 
-card_template = Jinja(
-    """
-    <b>{{card["hieroglyph"]}}</b>
-    <b>{{card["pinyin"]}}</b>
-    <b>{{card["meaning"]}}</b>
-    
-    <a href="{{card["haohan"]}}">haohan</a>|<a href="{{card["trainch"]}}">trainch</a>
-    """)
+
+def render_spoilers(flags):
+    template = """
+<b>{{card.hieroglyph}}</b>
+<b>{{card.pinyin}}</b>
+<b>{{card.meaning}}</b>
+
+<a href="{{card.haohan}}">haohan</a>|<a href="{{card.trainch}}">trainch</a>
+"""
+
+    if "hieroglyph" in flags:
+        template = template.replace("<b>{{card.hieroglyph}}</b>", "<span class=\"tg-spoiler\">{{card.hieroglyph}}</span>")
+    if "pinyin" in flags:
+        template = template.replace("<b>{{card.pinyin}}</b>", "<span class=\"tg-spoiler\">{{card.pinyin}}</span>")
+    if "meaning" in flags:
+        template = template.replace("<b>{{card.meaning}}</b>", "<span class=\"tg-spoiler\">{{card.meaning}}</span>")
+
+    return template
+
+
+
+#spoiler
 
 dialog = Dialog(
     Window(
@@ -91,13 +115,14 @@ dialog = Dialog(
         regimes_kbd,
         get_regime,
         state=DialogSG.entry,
-        getter=get_data
+        getter=get_flags
     ),
     Window(
-        card_template,
+        Jinja(),
         parse_mode=ParseMode.HTML,
         state=DialogSG.learning,
-        getter=get_data
+        getter=get_data,
+        disable_web_page_preview=True
     ),
 )
 
@@ -125,11 +150,12 @@ async def main():
 
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
-    #dp.message.middleware(AirtableMiddleware(AirtableActions(AIRTABLE_TOKEN, BASE, "Слова")))
+    dp.callback_query.middleware(AirtableMiddleware(AirtableActions(AIRTABLE_TOKEN, BASE, "Слова")))
     dp.message.register(start, F.text == "/start")
 
     registry = new_registry()
     registry.setup_dp(dp)
+
     await dp.start_polling(bot)
 
 
