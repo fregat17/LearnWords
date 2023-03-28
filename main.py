@@ -4,10 +4,10 @@ from os import environ
 from random import choice
 
 from aiogram import Bot, Dispatcher, F
-from aiogram.enums import ParseMode
+from aiogram.enums import ParseMode, ContentType
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, DialogRegistry, StartMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Select, Radio, Multiselect, Button
@@ -35,9 +35,9 @@ async def start(message: Message, dialog_manager: DialogManager):
 
 async def get_flags(**kwargs):
     flags = [
-        ("hieroglyph", "hieroglyph"),
-        ("pinyin", "pinyin"),
-        ("meaning", "meaning"),
+        ("Иероглиф", "hieroglyph"),
+        ("Пиньинь", "pinyin"),
+        ("Значение", "meaning"),
     ]
 
     return {
@@ -51,17 +51,29 @@ async def get_data(dialog_manager: DialogManager, air_connect, **kwargs):
     cards = make_cards(data)
     card = choice(cards)
 
+    if "hieroglyph" in flags:
+        dialog_manager.dialog_data["right_hieroglyph"] = card.hieroglyph
+
     return {
         "flags": flags,
         "card": card
     }
 
 
-async def go_anneal(c, dialog, manager: DialogManager):  # , air_connect: AirtableActions
+async def go_cards(c: CallbackQuery, dialog, manager: DialogManager):
     checked_flags = manager.find("regimes_kbd")
     manager.dialog_data["chosen_flags"] = checked_flags.get_checked()
 
     await manager.next()
+
+
+async def check_hieroglyph(m: Message, dialog, manager: DialogManager):
+    hieroglyph_input = m.text
+    right_hieroglyph = manager.dialog_data.get("right_hieroglyph")
+    if hieroglyph_input == right_hieroglyph:
+        await m.answer("Верно")
+    else:
+        await m.answer(f"Неверно. Правильно будет так - {right_hieroglyph}")
 
 
 regimes_kbd = Multiselect(
@@ -74,7 +86,7 @@ regimes_kbd = Multiselect(
     max_selected=2
 )
 
-get_regime = Button(Const("Process"), id="get_regime", on_click=go_anneal)
+get_regime = Button(Const("Process"), id="get_regime", on_click=go_cards)
 next_card = Button(Const("Next"), id="next")
 
 card_template = Jinja("""
@@ -100,6 +112,7 @@ dialog = Dialog(
     Window(
         card_template,
         next_card,
+        MessageInput(check_hieroglyph, content_types=[ContentType.TEXT]),
         parse_mode=ParseMode.HTML,
         state=DialogSG.learning,
         getter=get_data,
