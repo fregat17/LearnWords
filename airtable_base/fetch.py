@@ -1,9 +1,6 @@
 from typing import Generator, Any, Iterator, Mapping, List
 
-from cachetools import TTLCache, cached
 from pyairtable import Table
-
-cache = TTLCache(maxsize=1, ttl=360)
 
 
 class AirtableActions:
@@ -16,7 +13,6 @@ class AirtableActions:
     def _auth(self) -> Table:
         return Table(self._token, self._database, self._table)
 
-    #@cached(cache)
     def _data_generator(self, fields: List[str], **kwargs):
         return self._auth.all(fields=fields, **kwargs)
 
