@@ -16,7 +16,6 @@ from aiogram_dialog.widgets.text import Const, Format, Jinja
 from airtable_base.fetch import AirtableActions
 from airtable_base.middleware import AirtableMiddleware
 from logic.card import make_cards
-from message_template import ReadyMsg
 
 # tokens
 BOT_TOKEN = environ['BOT_TOKEN']
