@@ -21,7 +21,7 @@ from message_template import ReadyMsg
 # tokens
 BOT_TOKEN = environ['BOT_TOKEN']
 AIRTABLE_TOKEN = environ["AIRTABLE_TOKEN"]
-BASE = environ["WORDS_BASE"]
+WORDS_BASE = environ["WORDS_BASE"]
 
 
 class DialogSG(StatesGroup):
@@ -126,8 +126,8 @@ async def main():
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 
-    dp.callback_query.middleware(AirtableMiddleware(AirtableActions(AIRTABLE_TOKEN, BASE, "Слова")))
-    dp.message.middleware(AirtableMiddleware(AirtableActions(AIRTABLE_TOKEN, BASE, "Слова")))
+    dp.callback_query.middleware(AirtableMiddleware(AirtableActions(AIRTABLE_TOKEN, WORDS_BASE, "Слова")))
+    dp.message.middleware(AirtableMiddleware(AirtableActions(AIRTABLE_TOKEN, WORDS_BASE, "Слова")))
 
     dp.message.register(start, F.text == "/start")
 

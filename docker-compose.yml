@@ -1,0 +1,10 @@
+services:
+  learn_words_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: learn_words_bot
+    environment:
+      - TZ=Europe/Moscow
+    env_file:
+      - ../.env
