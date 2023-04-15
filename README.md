@@ -6,4 +6,6 @@ Telegram bot for hieroglyphs and pinyin memorizing.
 **TODO**
 - reduce the likelihood of reappearance of the word with correct quick answers.
 - add a penalty for long answering or mistake and increase the chance of the word reappearance.
-- make sqlite/postgres database with words.
+- remove airtable as words storage. Make sqlite/postgres database with words.
+- add dozzle for realtime logs from container.
+- add redis for storing user sessions.
